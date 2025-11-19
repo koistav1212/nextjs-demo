@@ -1,40 +1,58 @@
 "use client";
 
-import { ResponsiveContainer, LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend } from "recharts";
-import { Briefcase, DollarSign, LineChart as ChartIcon } from "lucide-react";
-import { KPICard } from '../components/shared/KpiCard';
-import { portfolioValueData, sectorData, CHART_COLORS, STARTING_BALANCE } from '../lib/data/sim-data';
+import {
+  ResponsiveContainer,
+  LineChart,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+} from "recharts";
 
-/**
- * Dashboard Section: Shows KPIs, Portfolio Value Trend chart, and Sector Allocation chart.
- */
-export default function DashboardSection ()  {
-  // Mock calculations based on mock data
-  const totalValue = portfolioValueData[portfolioValueData.length - 1].value;
+import {
+  Briefcase,
+  DollarSign,
+  LineChart as ChartIcon,
+} from "lucide-react";
+
+import { KPICard } from "../components/shared/KpiCard";
+import {
+  portfolioValueData,
+  sectorData,
+  CHART_COLORS,
+  STARTING_BALANCE,
+} from "../lib/data/sim-data";
+
+export default function DashboardSection() {
+  const totalValue =
+    portfolioValueData[portfolioValueData.length - 1].value;
   const initialBalance = STARTING_BALANCE;
-  const dailyChangeAbsolute = 165.20; // Mocked
-  const dailyChangePercent = 1.58; // Mocked
-  const dailyChangeSign = dailyChangePercent >= 0 ? '+' : '-';
+  const dailyChangeAbsolute = 165.2;
+  const dailyChangePercent = 1.58;
+  const dailyChangeSign = dailyChangePercent >= 0 ? "+" : "-";
 
   return (
     <section className="space-y-6">
-      {/* KPI Row */}
+
+      {/* KPI CARDS */}
       <div className="grid gap-4 md:grid-cols-3">
         <KPICard
           title="Total Portfolio Value"
           subtitle="All assets combined"
           value={`$${totalValue.toFixed(2)}`}
           icon={Briefcase}
-          accent="from-indigo-400 to-sky-500"
+          accent="from-[var(--accent)] to-[var(--accent-hover)]"
           change="+4.80% lifetime"
         />
+
         <KPICard
           title="Available Cash"
           subtitle="Ready for trading"
-          value={`$${(initialBalance - 3380.00).toFixed(2)}`} // Mocked cash remaining
+          value={`$${(initialBalance - 3380).toFixed(2)}`}
           icon={DollarSign}
-          accent="from-sky-400 to-purple-500"
+          accent="from-[var(--accent)] to-[var(--accent-hover)]"
         />
+
         <KPICard
           title="Daily P&L"
           subtitle="Today's performance"
@@ -44,38 +62,51 @@ export default function DashboardSection ()  {
         />
       </div>
 
-      {/* Charts Row */}
+      {/* CHARTS */}
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        {/* Portfolio Value Trend */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5 shadow-xl">
+
+        {/* PORTFOLIO TREND */}
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-xl transition-colors">
           <div className="mb-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
               Portfolio Value Trend
             </p>
-            <p className="mt-1 text-xs text-slate-500">Last 6 Trading Days</p>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+              Last 6 Trading Days
+            </p>
           </div>
+
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={portfolioValueData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                <XAxis dataKey="date" tick={{ fill: "#94a3b8", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis
-                  tick={{ fill: "#94a3b8", fontSize: 12 }}
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="var(--chart-grid)"
+                  vertical={false}
+                />
+
+                <XAxis
+                  dataKey="date"
+                  tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
                   axisLine={false}
                   tickLine={false}
-                  tickFormatter={(value) => `$${(value / 1000).toFixed(1)}k`}
                 />
-                {/* <Tooltip
-                  contentStyle={{ backgroundColor: "#020617", borderColor: "#1f2937", borderRadius: 12, fontSize: 12 }}
-                  labelStyle={{ color: "#e5e7eb" }}
-                  formatter={(value) => [`$${value.toFixed(2)}`, 'Value']}
-                /> */}
+
+                <YAxis
+                  tick={{ fill: "var(--text-secondary)", fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(value) =>
+                    `$${(value / 1000).toFixed(1)}k`
+                  }
+                />
+
                 <Line
                   type="monotone"
                   dataKey="value"
-                  stroke={CHART_COLORS[0]}
+                  stroke="var(--chart-line)"
                   strokeWidth={2.4}
-                  dot={{ r: 4, fill: CHART_COLORS[0] }}
+                  dot={{ r: 4, fill: "var(--chart-line)" }}
                   activeDot={{ r: 6 }}
                 />
               </LineChart>
@@ -83,50 +114,26 @@ export default function DashboardSection ()  {
           </div>
         </div>
 
-        {/* Sector Allocation */}
-        <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-5 shadow-xl">
+        {/* SECTOR ALLOCATION (Disabled for now) */}
+        <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-xl transition-colors">
           <div className="mb-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
               Sector Allocation
             </p>
-            <p className="mt-1 text-xs text-slate-500">Portfolio by Sector (%)</p>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+              Portfolio by Sector (%)
+            </p>
           </div>
-          {/* <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={sectorData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={55}
-                  outerRadius={90}
-                  paddingAngle={2}
-                >
-                  {sectorData.map((entry, index) => (
-                    <Cell
-                      key={entry.name}
-                      fill={CHART_COLORS[index % CHART_COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ backgroundColor: "#020617", borderColor: "#1f2937", borderRadius: 12, fontSize: 12 }}
-                  labelStyle={{ color: "#e5e7eb" }}
-                  formatter={(value, name) => [`${value}%`, name]}
-                />
-                <Legend
-                  iconType="circle"
-                  verticalAlign="bottom"
-                  height={36}
-                  wrapperStyle={{ fontSize: 12, color: "#e5e7eb" }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div> */}
+
+          {/* You can enable the Pie Chart later */}
+          <div className="h-64 flex items-center justify-center text-[var(--text-secondary)]">
+            <p className="text-sm opacity-70">
+              Pie chart coming soon…
+            </p>
+          </div>
         </div>
+
       </div>
     </section>
   );
-};
+}

@@ -2,67 +2,86 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ------------------------------------------
+   ACUTRADER THEME SYSTEM
+------------------------------------------ */
+
+/* 🌞 LIGHT THEME */
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --bg: #F7F9FB;
+  --bg-secondary: #FFFFFF;
+  --card: #FFFFFF;
+
+  --text: #0D1B2A;
+  --text-secondary: #445566;
+
+  --border: #DCE3EA;
+
+  --accent: #00AC86;
+  --accent-hover: #008C6F;
+
+  --profit: #0FA958;
+  --loss: #E7515A;
+
+  --chart-line: #00B38F;
+  --chart-grid: #E5E9EF;
+
+  --logo: #00E0A2;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+/* 🌑 DARK THEME */
+.dark {
+  --bg: #0C111D;
+  --bg-secondary: #131A2B;
+  --card: #131A2B;
+
+  --text: #F3F4F6;
+  --text-secondary: #9AA5B8;
+
+  --border: #1E2638;
+
+  --accent: #00E0A2;
+  --accent-hover: #00C78F;
+
+  --profit: #14FFB0;
+  --loss: #FF6B81;
+
+  --chart-line: #00E0A2;
+  --chart-grid: #243047;
+
+  --logo: #00E0A2;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-}
+/* ------------------------------------------
+   APPLY GLOBAL STYLES
+------------------------------------------ */
 
-@layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* Global base styles for a futuristic, dark-mode theme. 
-  - Uses the Inter font (imported by Next.js font utility).
-  - Sets a deep, dark gradient background for the entire page.
-*/
 @layer base {
   body {
-    /* Deep dark background with a slight subtle gradient */
-    @apply bg-slate-950 text-slate-50 min-h-screen antialiased;
-    background-image: radial-gradient(at 0% 0%, rgb(15 23 42 / 0.5), transparent 50%),
-                      radial-gradient(at 100% 100%, rgb(17 24 39 / 0.8), transparent 50%);
+    background-color: var(--bg);
+    color: var(--text);
+    @apply antialiased transition-colors duration-300;
   }
-  
-  /* Styling for clean, dark-mode scrollbars */
+
   ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
-
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-700 rounded-full;
+    background: var(--border);
+    border-radius: 9999px;
   }
-
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-slate-600;
+    background: var(--accent);
   }
-
   ::-webkit-scrollbar-track {
-    @apply bg-slate-900;
+    background: var(--bg-secondary);
+  }
+}
+
+/* Utility */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
   }
 }
