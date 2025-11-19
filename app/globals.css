@@ -31,3 +31,38 @@ body {
     text-wrap: balance;
   }
 }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global base styles for a futuristic, dark-mode theme. 
+  - Uses the Inter font (imported by Next.js font utility).
+  - Sets a deep, dark gradient background for the entire page.
+*/
+@layer base {
+  body {
+    /* Deep dark background with a slight subtle gradient */
+    @apply bg-slate-950 text-slate-50 min-h-screen antialiased;
+    background-image: radial-gradient(at 0% 0%, rgb(15 23 42 / 0.5), transparent 50%),
+                      radial-gradient(at 100% 100%, rgb(17 24 39 / 0.8), transparent 50%);
+  }
+  
+  /* Styling for clean, dark-mode scrollbars */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-700 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-600;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-900;
+  }
+}
