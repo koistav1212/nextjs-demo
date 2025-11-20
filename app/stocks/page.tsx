@@ -1,117 +1,241 @@
 "use client";
 
-import { tradeableStocks } from "../lib/data/sim-data";
+import { useState, useEffect } from "react";
+import TrendingStocks from "./TrendingStocks";
+import Filters from "./Filters";
 import { cn } from "../lib/utils";
-import { ChevronDown, ChevronUp } from "lucide-react";
 
-export default function MarketSection() {
-  const handleTrade = (symbol: string, action: "Buy" | "Sell") => {
-    alert(`[Simulated Trade] ${action} 1 share of ${symbol}`);
+const TABS = ["Stocks", "ETF", "Intraday"];
+
+export default function MarketScreener() {
+  const [activeTab, setActiveTab] = useState("Stocks");
+
+  const [query, setQuery] = useState("");
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const [filters, setFilters] = useState({
+    country: "",
+    exchange: "",
+    type: "",
+    currency: ""
+  });
+
+  //
+  // 🔍 LOAD DATA BASED ON TAB
+  //
+  useEffect(() => {
+    setData([]);
+    setFilters({ country: "", exchange: "", type: "", currency: "" });
+    if (activeTab === "ETF") loadETFs();
+    if (activeTab === "Intraday") loadIntraday();
+  }, [activeTab]);
+
+  //
+  // 🔍 SEARCH STOCKS
+  //
+  useEffect(() => {
+    if (activeTab !== "Stocks") return;
+    if (!query) {
+      setData([]);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setLoading(true);
+      const res = await fetch(`/api/market/search?q=${query}`);
+      const json = await res.json();
+      setData(json);
+      setLoading(false);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [query, activeTab]);
+
+  //
+  // 📌 Load ETF screener
+  //
+  async function loadETFs() {
+    setLoading(true);
+    const res = await fetch(`/api/market/etf`);
+    const json = await res.json();
+    setData(json);
+    setLoading(false);
+  }
+
+  //
+  // 📌 Load Intraday most traded
+  //
+  async function loadIntraday() {
+    setLoading(true);
+    const res = await fetch(`/api/market/intraday`);
+    const json = await res.json();
+    setData(json);
+    setLoading(false);
+  }
+
+  //
+  // 📌 FILTERING (Stocks only)
+  //
+  const filtered =
+    activeTab === "Stocks"
+      ? data.filter((s: any) => {
+          return (
+            (filters.country ? s.country === filters.country : true) &&
+            (filters.exchange ? s.exchange.includes(filters.exchange) : true) &&
+            (filters.type ? s.instrument_type === filters.type : true) &&
+            (filters.currency ? s.currency === filters.currency : true)
+          );
+        })
+      : data;
+
+  //
+  // 📌 COLUMN SETS BASED ON TAB
+  //
+  const columns :any= {
+    Stocks: ["Symbol", "Company", "Exchange", "Country", "Currency"],
+    ETF: ["Symbol", "ETF Name", "Price", "1D Change", "Volume"],
+    Intraday: ["Symbol", "Name", "Price", "Volume", "Change %"]
   };
 
   return (
-    <section className="space-y-4">
+    <section className="space-y-8">
 
-      {/* Header */}
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
-          Live Market Data
-        </p>
-        <p className="mt-1 text-xs text-[var(--text-secondary)]">
-          Select a stock to buy or sell (Simulated Real-Time).
-        </p>
+      {/* 🌟 TAB SELECTION */}
+      <div className="flex justify-center gap-3">
+        {TABS.map((t) => (
+          <button
+            key={t}
+            onClick={() => setActiveTab(t)}
+            className={cn(
+              "px-4 py-2 rounded-xl text-sm font-semibold border transition",
+              activeTab === t
+                ? "bg-[var(--accent)] text-white shadow"
+                : "bg-[var(--card)] text-[var(--text-secondary)] border-[var(--border)]"
+            )}
+          >
+            {t}
+          </button>
+        ))}
       </div>
 
-      {/* Table Container */}
-      <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-xl">
-        <div className="overflow-x-auto">
-          <table className="min-w-full text-sm text-[var(--text)]">
+      {/* 🔍 SEARCH BAR (Stocks only) */}
+      {activeTab === "Stocks" && (
+        <div className="w-full flex justify-center">
+          <input
+            type="text"
+            placeholder="Search for stocks..."
+            className="w-full sm:w-2/3 p-3 rounded-xl border border-[var(--border)] bg-[var(--bg)] shadow-md"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+      )}
 
-            {/* Table Header */}
-            <thead className="bg-[var(--bg-secondary)] text-xs uppercase tracking-wide text-[var(--text-secondary)] border-b border-[var(--border)]">
-              <tr>
-                <th className="px-4 py-3 text-left">Symbol</th>
-                <th className="px-4 py-3 text-left hidden sm:table-cell">Company</th>
-                <th className="px-4 py-3 text-right">Price (USD)</th>
-                <th className="px-4 py-3 text-right">Change (%)</th>
-                <th className="px-4 py-3 text-right">Action</th>
-              </tr>
-            </thead>
+      {/* ⭐ TRENDING — only for stocks */}
+      {activeTab === "Stocks" && <TrendingStocks />}
 
-            <tbody>
-              {tradeableStocks.map((stock, idx) => {
-                const isPositive = stock.change >= 0;
+      <div className="flex flex-col sm:flex-row gap-6">
 
-                return (
-                  <tr
-                    key={stock.symbol}
-                    className={cn(
-                      idx % 2 === 0
-                        ? "bg-[var(--bg)]"
-                        : "bg-[var(--bg-secondary)]/50",
-                      "transition-colors hover:bg-[var(--accent)]/10"
-                    )}
-                  >
-                    {/* SYMBOL */}
-                    <td className="whitespace-nowrap px-4 py-3 text-sm font-bold text-[var(--accent)]">
-                      {stock.symbol}
-                    </td>
+        {/* FILTERS (Stocks only) */}
+        {activeTab === "Stocks" && (
+          <Filters filters={filters} setFilters={setFilters} />
+        )}
 
-                    {/* COMPANY */}
-                    <td className="whitespace-nowrap px-4 py-3 text-xs text-[var(--text-secondary)] hidden sm:table-cell">
-                      {stock.name}
-                    </td>
+        {/* TABLE RESULT */}
+        <div className="flex-1 space-y-4">
+          <h3 className="text-sm font-semibold text-[var(--text-secondary)]">
+            {filtered.length} {activeTab} Found
+          </h3>
 
-                    {/* PRICE */}
-                    <td className="whitespace-nowrap px-4 py-3 text-right text-xs text-[var(--text)]">
-                      ${stock.price.toFixed(2)}
-                    </td>
+          <div className="rounded-xl overflow-hidden border border-[var(--border)] bg-[var(--card)] shadow-xl">
+            <table className="w-full text-sm">
+              <thead className="bg-[var(--bg-secondary)] text-xs text-[var(--text-secondary)] uppercase tracking-wide">
+                <tr>
+                  {columns[activeTab].map((col:any) => (
+                    <th key={col} className="px-4 py-3 text-left">
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
 
-                    {/* CHANGE (%) */}
-                    <td className="whitespace-nowrap px-4 py-3 text-right text-xs">
-                      <span
-                        className={cn(
-                          "inline-flex items-center rounded-full px-2.5 py-1 text-[0.65rem] font-semibold ring-1",
-                          isPositive
-                            ? "bg-[var(--profit)]/15 text-[var(--profit)] ring-[var(--profit)]/40"
-                            : "bg-[var(--loss)]/15 text-[var(--loss)] ring-[var(--loss)]/40"
-                        )}
-                      >
-                        {isPositive ? (
-                          <ChevronUp className="w-3 h-3 mr-1" />
-                        ) : (
-                          <ChevronDown className="w-3 h-3 mr-1" />
-                        )}
-                        {stock.change.toFixed(2)}%
-                      </span>
-                    </td>
-
-                    {/* ACTION BUTTONS */}
-                    <td className="whitespace-nowrap px-4 py-3 text-right space-x-2">
-
-                      {/* BUY BUTTON */}
-                      <button
-                        onClick={() => handleTrade(stock.symbol, "Buy")}
-                        className="rounded-lg bg-[var(--accent)] px-3 py-1 text-xs font-semibold text-white shadow-md hover:bg-[var(--accent-hover)] transition"
-                      >
-                        Buy
-                      </button>
-
-                      {/* SELL BUTTON */}
-                      <button
-                        onClick={() => handleTrade(stock.symbol, "Sell")}
-                        className="rounded-lg bg-[var(--loss)] px-3 py-1 text-xs font-semibold text-white shadow-md hover:bg-red-500/80 transition"
-                      >
-                        Sell
-                      </button>
-
+              <tbody>
+                {loading ? (
+                  <tr>
+                    <td colSpan={5} className="text-center py-6">
+                      Loading...
                     </td>
                   </tr>
-                );
-              })}
-            </tbody>
+                ) : (
+                  filtered.map((item: any, i) => (
+                    <tr
+                      key={i}
+                      className={
+                        i % 2 === 0
+                          ? "bg-[var(--bg)]"
+                          : "bg-[var(--bg-secondary)]/40"
+                      }
+                    >
+                      {activeTab === "Stocks" && (
+                        <>
+                          <td className="px-4 py-3 text-[var(--accent)] font-semibold">
+                            {item.symbol}
+                          </td>
+                          <td className="px-4 py-3">{item.instrument_name}</td>
+                          <td className="px-4 py-3">{item.exchange}</td>
+                          <td className="px-4 py-3">{item.country}</td>
+                          <td className="px-4 py-3">{item.currency}</td>
+                        </>
+                      )}
 
-          </table>
+                      {activeTab === "ETF" && (
+                        <>
+                          <td className="px-4 py-3 text-[var(--accent)] font-semibold">
+                            {item.symbol}
+                          </td>
+                          <td className="px-4 py-3">{item.name}</td>
+                          <td className="px-4 py-3">₹{item.market_price}</td>
+                          <td
+                            className={cn(
+                              "px-4 py-3 font-semibold",
+                              item.change_percent >= 0
+                                ? "text-[var(--profit)]"
+                                : "text-[var(--loss)]"
+                            )}
+                          >
+                            {item.change_percent}%
+                          </td>
+                          <td className="px-4 py-3">{item.volume}</td>
+                        </>
+                      )}
+
+                      {activeTab === "Intraday" && (
+                        <>
+                          <td className="px-4 py-3 text-[var(--accent)] font-semibold">
+                            {item.symbol}
+                          </td>
+                          <td className="px-4 py-3">{item.name}</td>
+                          <td className="px-4 py-3">{item.price}</td>
+                          <td className="px-4 py-3">{item.volume}</td>
+                          <td
+                            className={cn(
+                              "px-4 py-3 font-semibold",
+                              item.change_percent >= 0
+                                ? "text-[var(--profit)]"
+                                : "text-[var(--loss)]"
+                            )}
+                          >
+                            {item.change_percent}%
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
